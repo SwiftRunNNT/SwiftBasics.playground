@@ -15,8 +15,18 @@
 
  Exemplo:
  */
+protocol MyProtocol {
+    var myVar: Int { get set }
+    func myMethod()
+}
 
-
+class MyClass: MyProtocol {
+    var myVar: Int = 0
+    
+    func myMethod() {
+        print("My method was called")
+    }
+}
 
 /*:
  ### Propriedades
@@ -29,6 +39,9 @@
  Exemplo:
  */
 
+protocol Colorful {
+    var color: String { get set }
+}
 
 
 /*:
@@ -40,6 +53,24 @@
  > Sempre devemos marcar a implementação do iniciador com required.
  */
 
+protocol Playable {
+    func play()
+}
+
+class Song: Playable {
+    var title: String
+    
+    init(title: String) {
+        self.title = title
+    }
+    
+    func play() {
+        print("Tocando a musica: \(title)")
+    }
+}
+
+let mySong = Song(title: "Shadow Moses")
+mySong.play()
 
 
 /*:
@@ -50,6 +81,31 @@
  > 
  */
 
+protocol Container {
+    associatedtype Item
+    
+    var count: Int { get }
+    mutating func append(_ item: Item)
+    subscript(i: Int) -> Item { get }
+}
+
+class IntContainer: Container {
+    typealias Item = Int
+    
+    private var items = [Item]()
+    
+    var count: Int {
+        return items.count
+    }
+    
+    func append(_ item: Item) {
+        items.append(item)
+    }
+    
+    subscript(i: Int) -> Item {
+        return items[i]
+    }
+}
 
 
 /*:
@@ -65,6 +121,81 @@
  Podemos por exemplo ter `eletronicos`, `livros`, etc. Use `associated types` para definir um protocolo para esse "armário"
  */
 
+import Foundation
+
+protocol Printable {
+    func printData()
+}
+
+protocol SalaryCalculable {
+    var grossSalary: Double { get set }
+    func calculateTaxes() -> Double
+}
+
+protocol Locker {
+    associatedtype ItemType
+    var items: [ItemType] { get set }
+    func listItems()
+}
+
+struct Electronic {
+    let name: String
+}
+
+struct Book {
+    let title: String
+}
+
+struct ElectronicLocker: Locker {
+    var items: [Electronic]
+    
+    func listItems() {
+        for item in items {
+            print(item.name)
+        }
+    }
+}
+
+class Employee: Printable {
+    var name: String
+    var birthDate: Date
+    var department: String
+    
+    init(name: String, birthDate: Date, department: String) {
+        self.name = name
+        self.birthDate = birthDate
+        self.department = department
+    }
+    
+    func printData() {
+        print("Name: \(name)")
+        print("Birth Date: \(birthDate)")
+        print("Department: \(department)")
+    }
+}
+
+class EmployeeWithLocker<ItemType>: Employee, SalaryCalculable where ItemType: Locker {
+    var grossSalary: Double
+    var locker: ItemType
+    
+    init(name: String, birthDate: Date, department: String, grossSalary: Double, locker: ItemType) {
+        self.grossSalary = grossSalary
+        self.locker = locker
+        super.init(name: name, birthDate: birthDate, department: department)
+    }
+    
+    func calculateTaxes() -> Double {
+        return grossSalary * 0.2
+    }
+}
+
+let electronicLocker = ElectronicLocker(items: [Electronic(name: "PC"), Electronic(name: "Laptop")])
+let employeeWithElectronicLocker = EmployeeWithLocker(name: "Francisco Remo", birthDate: Date(), department: "TI", grossSalary: 5000.0, locker: electronicLocker)
+
+employeeWithElectronicLocker.printData()
+print("Gross Salary: \(employeeWithElectronicLocker.grossSalary)")
+employeeWithElectronicLocker.locker.listItems()
+print("Taxes: \(employeeWithElectronicLocker.calculateTaxes())")
 
 
 //: [Extensions](@next)
