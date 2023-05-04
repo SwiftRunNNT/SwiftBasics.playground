@@ -57,6 +57,22 @@
 
  */
 
+public class MyClass {
+    // ...
+}
+
+class MyClassTwo {
+    public var myPublicVar: Int = 0
+    private var myPrivateVar: Int = 0
+}
+
+fileprivate struct MyStruct {
+    // ...
+}
+
+private enum MyEnum {
+    // ...
+}
 
 
 /*:
@@ -77,6 +93,24 @@
 
 */
 
+// Arquivo: MyModule.swift
+
+public class MyClassNew {
+    fileprivate var myPrivateProperty = 42
+    internal func myInternalMethod() {
+        print("This is an internal method")
+    }
+    private func myPrivateMethod() {
+        print("This is a private method")
+    }
+}
+
+// Arquivo: main.swift
+
+let myObjecta = MyClassNew()
+print(myObjecta.myInternalMethod()) // Output: "This is an internal method"
+//print(myObjecta.myPrivateMethod()) // Erro: "myPrivateMethod() is inaccessible due to 'private' protection level"
+print(myObjecta.myPrivateProperty) // Erro: "myPrivateProperty is inaccessible due to 'fileprivate' protection level"
 
 
 /*:
@@ -85,6 +119,16 @@
  No caso de um Tipo definido como uma tupla, o nível de acesso desse Tipo será o nível mais restritivos dos Tipos que formam a tupla. Por exemplo:
  */
  
+
+public struct MyTuple {
+    public var publicInt: Int
+    fileprivate var privateString: String
+}
+
+// Tupla com dois valores, um String e um Int, definidos como public e private, respectivamente
+public let myTuple = ("hello", 10)
+
+// O nível de acesso da tupla será private, já que um dos seus componentes tem nível de acesso private
 
 
 /*:
@@ -133,6 +177,16 @@ public enum CompassPoint {
  The access level of a nested type is the same as its containing type, unless the containing type is public. Nested types defined within a public type have an automatic access level of internal. If you want a nested type within a public type to be publicly available, you must explicitly declare the nested type as public.
 */
 
+public class OuterClass {
+    private var privateProperty: Int = 0
+    
+    public class NestedClass {
+        public func doSomething() {
+            let outer = OuterClass()
+            outer.privateProperty = 10
+        }
+    }
+}
 
 
 /*:
@@ -146,12 +200,31 @@ public enum CompassPoint {
  An override can make an inherited class member more accessible than its superclass version. In the example below, class A is a public class with a file-private method called someMethod(). Class B is a subclass of A, with a reduced access level of “internal”. Nonetheless, class B provides an override of someMethod() with an access level of “internal”, which is higher than the original implementation of someMethod():
  */
 
+public class A {
+    fileprivate func someMethod() {}
+}
+
+internal class B: A {
+    override internal func someMethod() {}
+}
 
 
 /*:
  É ainda válido que o membro de uma subclasse chame o membro da sua superclasse que tem nível de acesso menor que o da sua subclasse, contanto que a chamada para o membro da superclasse aconteça dentro do contexto de acesso permitido (ou seja, dentro do mesmo arquivo no caso de _fileprivate_ ou dentro do mesmo módulo no caso do _internal_).
  */
 
+class Superclass {
+    fileprivate func someMethod() {
+        print("This is a fileprivate method.")
+    }
+}
+
+class Subclass: Superclass {
+    override internal func someMethod() {
+        super.someMethod() // Chamando o método da superclasse com nível de acesso fileprivate
+        print("This is a subclass method.")
+    }
+}
 
 
 /*:
@@ -170,18 +243,56 @@ public enum CompassPoint {
  O exemplo abaixo define uma estrutura chamada TrackedString, que guarda o número de vezes que uma string foi modificada.
  */
  
+struct TrackedString {
+    private(set) var numberOfEdits = 0
+    var value: String = "" {
+        didSet {
+            numberOfEdits += 1
+        }
+    }
+}
 
+var tracked = TrackedString()
+tracked.value = "Hello, world!"
+tracked.value = "Swift is awesome!"
+print(tracked.numberOfEdits) // Output: 2
 
 /*:
  Se você cria uma TrackedString e modifica o value dessa string algumas vezes, você poderá ler a propriedade numberOfEdits depois para ver quantas vezes ela foi modificada, mas não poderá atribuir um valor a ela manualmente:
 */
 
+// Criando uma instância de TrackedString
+var trackedString = TrackedString()
+
+// Modificando o valor algumas vezes
+trackedString.value = "Hello"
+trackedString.value = "Hello, World!"
+trackedString.value += " How are you?"
+
+// Tentando atribuir um valor diretamente a numberOfEdits resulta em um erro de compilação
+// trackedString.numberOfEdits = 10
+
+// Lendo o valor de numberOfEdits
+print("A string foi modificada \(trackedString.numberOfEdits) vezes")
 
 
 /*:
  Node que você pode atribuir um nível de acesso explícito para ambos getter e setter se necessário. O exemplo abaixo mostra uma versão da TrackString na qual a estrutura é definida com o nível de acesso _public_. Portanto, os membros dessa estrutura (incluindo a propriedade numberOfEdits) tem nível de acesso _internal_ por padrão. Você pode setar o getter da propriedade numberOfEdits como _public_, e o setter como _private_, combinando ambos:
  */
 
+public struct TrackedStringOne {
+    private(set) public var numberOfEdits = 0
+    
+    public var value: String {
+        didSet {
+            numberOfEdits += 1
+        }
+    }
+    
+    public init(initialValue: String) {
+        value = initialValue
+    }
+}
 
 
 /*:
@@ -196,6 +307,22 @@ public enum CompassPoint {
  Um default initializer tem o mesmo nível de acesso que o definido no Tipo, a não ser que o Tipo esteja definido como _public_. Nesse caso, o default initializer será considerado _internal_. Se você quer que um tipo publico possa ser inicializado em outro módulo, você deve especificar um default initializer com nível de acesso _public_.
  */
 
+public struct MyStruct {
+    public var myPublicVar: Int
+    var myInternalVar: String
+
+    // Default initializer é internal
+    // por causa da declaração pública da struct
+}
+
+let myStruct = MyStruct(myPublicVar: 10, myInternalVar: "Hello World")
+// Isso funciona porque estamos no mesmo módulo
+
+public let myPublicStruct = MyStruct(myPublicVar: 20, myInternalVar: "Goodbye World")
+// Isso também funciona porque estamos tornando myPublicStruct público
+
+// let myOtherStruct = MyStruct()
+// Isso gera um erro porque estamos tentando usar um default initializer internal fora do módulo
 
 
 /*:
@@ -238,11 +365,64 @@ public enum CompassPoint {
  Esse comportamento significa que você pode usar extensões da mesma maneira para organizar seu código, tendo ou não tipos com entidades privadas. Por exemplo, dado o simples protocolo a seguir:
  */
 
+public class MyClassOne {
+    private var privateProperty: Int = 0
+    internal var internalProperty: String = "Internal"
+
+    private func privateMethod() {
+        print("This is a private method")
+    }
+
+    internal func internalMethod() {
+        print("This is an internal method")
+    }
+
+    public func publicMethod() {
+        print("This is a public method")
+    }
+}
+
+protocol MyProtocolOne {
+    func myProtocolMethod()
+}
+
+extension MyClassOne: MyProtocolOne {
+    func myProtocolMethod() {
+        print("MyClass conforms to MyProtocol")
+    }
+}
+
+private extension MyClassOne {
+    func privateExtensionMethod() {
+        print("This is a private extension method")
+    }
+}
+
+let myObjectOne = MyClassOne()
+
+myObjectOne.publicMethod()
+myObjectOne.internalMethod()
+
+let myProtocolObject: MyProtocolOne = myObjectOne
+myProtocolObject.myProtocolMethod()
+
+myObjectOne.privateExtensionMethod()
 
 
 //: Você pode usar uma extensão para adicionar conformidade a  um protocolo, assim:
 
+protocol MyProtocolNewNew {
+    func myMethod()
+}
 
+extension Int: MyProtocolNewNew {
+    func myMethod() {
+        print("MyInt: \(self)")
+    }
+}
+
+let myInt = 42
+myInt.myMethod() // imprime "MyInt: 42"
 
 /*:
  ### Tipos Genéricos (Generics)
@@ -255,3 +435,12 @@ public enum CompassPoint {
  
  Essa regra também se aplica a typealiases de associated types usados para satisfazer algum protocol.
  */
+struct Stack<T> {
+    var items = [T]()
+    mutating func push(_ item: T) {
+        items.append(item)
+    }
+    mutating func pop() -> T? {
+        return items.isEmpty ? nil : items.removeLast()
+    }
+}

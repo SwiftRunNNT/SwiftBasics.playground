@@ -13,20 +13,37 @@ import Foundation
  Observe a função não genérica abaixo, que faz a troca dos valores de duas variáveis inteiras uma pela outra.
 */
 
-
+func swapInts(_ a: inout Int, _ b: inout Int) {
+    let temp = a
+    a = b
+    b = temp
+}
 
 /*:Essa função faz uso de parametros in-out para fazer a troca dos valores a e b, como explicado no tópico de Propriedades In-Out.
 
 A função swapTwoInts(_ : _ :) troca o valor original de _b_ pelo valor de _a_, e o valor original de _a_ pelo de _b_. Você pode chamar essa função para trocar os valores de duas variáveis do tipo Int:
 */
 
+var x = 3
+var y = 7
+swapInts(&x, &y)
 
 
 /*:
  A função swapTwoInts(_ : _ :) é útil, mas só pode ser usada em valores do tipo Int. Se você quiser trocar os valores de duas variáveis do tipo String, ou Double, você consegue fazer isso escrevendo mais funções, como abaixo:
 */
 
+func swapString(_ a: inout String, _ b: inout String) {
+    let temp = a
+    a = b
+    b = temp
+}
 
+func swapDouble(_ a: inout Double, _ b: inout Double) {
+    let temp = a
+    a = b
+    b = temp
+}
 
 /*:
  Note que o corpo de swapTwoInts(_ : _ :), swapTwoString(_ : _ :), e swapTwoDoubles(_ : _ :) são exatamente iguais. A única diferença é o tipo dos valores que cada função aceita. (Int, String, e Double).
@@ -38,6 +55,11 @@ A função swapTwoInts(_ : _ :) troca o valor original de _b_ pelo valor de _a_,
  > Em todas as três funções, os tipos de _a_ e _b_ tem que ser exatamente o mesmo. Se _a_ e _b_ não forem do mesmo tipo, não é possível trocar os seus valores. Swift é uma linguagem _type-safe_ - isso quer dizer que a linguagem não permite (por exemplo) que uma variável do tipo String receba um valor do tipo Double, ou qualquer tipo diferente. Qualquer tentativa de uma operação assim resultará em um Erro em tempo de compilação. Uma variável de um determinado tipo _T_ só pode receber valores desse mesmo tipo _T_.
 */
 
+func swapValues<T>(_ a: inout T, _ b: inout T) {
+    let temp = a
+    a = b
+    b = temp
+}
 
 
 /*:
@@ -45,13 +67,21 @@ A função swapTwoInts(_ : _ :) troca o valor original de _b_ pelo valor de _a_,
  Funções genéricas podem funcionar com parâmetros de qualquer tipo. vamos implementar a função genérica da função swapTwoInts(_ : _ :), chamando agora de swapTwoValues(_ : _ :)
 */
 
+func swapTwoValues<T>(_ a: inout T, _ b: inout T) {
+    let temp = a
+    a = b
+    b = temp
+}
 
 
 /*:
  O corpo da função swapTwoValues(_ : _ :) é identica ao do corpo do swapTwoInts(_ : _ :). Entretanto, a primeira linha da função swapTwoValues(_ : _ :) é um pouco diferente da primeira linha da função swapTwoInts(_ : _ :). Vamos comparar as linhas:
 */
 
-
+var firstInt = 1
+var secondInt = 2
+swapTwoValues(&firstInt, &secondInt)
+print("After swapping: firstInt = \(firstInt), secondInt = \(secondInt)")
 
 /*:
  A versão genérica da função usa um tipo _placeholder_ (chamado T, nesse caso) em vez de ter o nome de um tipo de fato (Int, String, ou Double por exemplo). O nome do tipo _placeholder_ não diz nada sobre qual tipo a variável T deve ser, mas diz que ambos _a_ e _b_ devem ser do mesmo tipo T, seja lá qual for o tipo que T representa. O tipo que será usado de fato no lugar de T é determinado sempre que a função swapTwoValues(_ : _ :) é chamada.
@@ -65,7 +95,10 @@ A função swapTwoInts(_ : _ :) troca o valor original de _b_ pelo valor de _a_,
  Nos dois exemplo abaixo, T é inferido para ser Int e String respectivamente:
 */
 
-
+var firstString = "hello"
+var secondString = "world"
+swapTwoValues(&firstString, &secondString)
+print("After swapping: firstString = \(firstString), secondString = \(secondString)")
 
 /*:
 
@@ -73,6 +106,10 @@ A função swapTwoInts(_ : _ :) troca o valor original de _b_ pelo valor de _a_,
  > A função swapTwoValues(_ : _ :) definida acima é inspirada por uma função genérica chamada swap, que é parte da lib padrão da linguagem Swift, e está automaticamente disponível para uso no desenvolvimento dos seus Apps. Se você precisar do comportamento da função swapTwoValues(_ : _ :) no seu próprio código, você pode usar a função padrão _swap( _ : _ :)_ em vez de criar sua própria implementação.
 */
 
+var a = 10
+var b = 20
+swap(&a, &b)
+print("a: \(a), b: \(b)")
 
 
 /*:
@@ -90,12 +127,41 @@ A função swapTwoInts(_ : _ :) troca o valor original de _b_ pelo valor de _a_,
 
 */
 
+func findMax<T: Comparable>(_ array: [T]) -> T? {
+    guard !array.isEmpty else {
+        return nil
+    }
+    
+    var max = array[0]
+    for element in array {
+        if element > max {
+            max = element
+        }
+    }
+    return max
+}
+
+let intArray = [1, 5, 3, 2, 4]
+let maxInt = findMax(intArray)
+print(maxInt!) // Output: 5
+
+let stringArray = ["foo", "bar", "baz"]
+let maxString = findMax(stringArray)
+print(maxString!) // Output: "foo"
 
 
 /*:
  > Sempre nomeie type parameters com CamelCase começando com letra maiúscula para indicar que eles são um _placeholder_ para um tipo, e não um valor.
  */
 
+func findIndex<T: Equatable>(of valueToFind: T, in array: [T]) -> Int? {
+    for (index, value) in array.enumerated() {
+        if value == valueToFind {
+            return index
+        }
+    }
+    return nil
+}
 
 
 /*:
@@ -111,6 +177,21 @@ A função swapTwoInts(_ : _ :) troca o valor original de _b_ pelo valor de _a_,
  Vamos então implementar uma pilha não genérica de valores inteiros:
 */
 
+struct IntStack {
+    var items = [Int]()
+    
+    mutating func push(_ item: Int) {
+        items.append(item)
+    }
+    
+    mutating func pop() -> Int? {
+        if items.isEmpty {
+            return nil
+        } else {
+            return items.removeLast()
+        }
+    }
+}
 
 
 /*:
@@ -121,6 +202,21 @@ A função swapTwoInts(_ : _ :) troca o valor original de _b_ pelo valor de _a_,
 Agora vamos fazer uma versão genérica do mesmo cóigo:
 */
 
+struct Stack<Element> {
+    private var items = [Element]()
+
+    mutating func push(_ item: Element) {
+        items.append(item)
+    }
+
+    mutating func pop() -> Element? {
+        guard !items.isEmpty else {
+            return nil
+        }
+
+        return items.removeLast()
+    }
+}
 
 
 /*:
@@ -137,11 +233,26 @@ Agora vamos fazer uma versão genérica do mesmo cóigo:
 
 */
 
+var stack = Stack<String>()
+stack.push("Lucas")
+stack.push("Remo")
+stack.push("Anderson")
+stack.push("João")
 
+print(stack.pop())
+print(stack.pop())
+print(stack.pop())
+print(stack.pop())
 
 /*:
  Remover o valor de uma pilha também o retorna. Por exemplo, se removermos um valor da pilha atual, o valor retornado será "cuatro".
 */
+
+if let removedValue = stack.pop() {
+    print("Valor removido: \(removedValue)")
+} else {
+    print("A pilha está vazia")
+}
 
 
 
@@ -155,6 +266,11 @@ Agora vamos fazer uma versão genérica do mesmo cóigo:
 
 */
 
+extension Stack {
+    var topItem: Element? {
+        return items.isEmpty ? nil : items[items.count - 1]
+    }
+}
 
 
 /*:
@@ -165,12 +281,31 @@ Agora vamos fazer uma versão genérica do mesmo cóigo:
  A propriedade computada topItem pode agora ser usada em qualquer instancia de Stack para acessar ou buscar o item do topo da pilha sem removê-lo.
 */
 
+var stackOfStrings = Stack<String>()
+stackOfStrings.push("um")
+stackOfStrings.push("dois")
+stackOfStrings.push("três")
+
+if let topItem = stackOfStrings.topItem {
+    print("O item do topo da pilha é \(topItem).")
+}
+// Output: O item do topo da pilha é três.
 
 
 /*:
  Extensões de um tipo generico também podem requerir que instancias daquele tipo extendido sejam satisfeitas para que possam ganhar nova funcionalidade, como explicado na sessão de Extensions com Generic Where abaixo.
  */
 
+protocol Copyable {
+    func copy() -> Self
+}
+
+extension Stack where Element: Copyable {
+    func copyStack() -> Stack<Element> {
+        let copiedItems = self.items.map { $0.copy() }
+        return Stack<Element>(items: copiedItems)
+    }
+}
 
 
 /*:
@@ -190,6 +325,9 @@ Agora vamos fazer uma versão genérica do mesmo cóigo:
 
 */
 
+//func minhaFuncao<T: MinhaClasse>(param1: T, param2: Int) {
+    //...
+//}
 
 
 /*:
@@ -200,18 +338,41 @@ Agora vamos fazer uma versão genérica do mesmo cóigo:
  Aqui está uma função não genérica chamada findIndex(ofString:in:), que acha o index de um elemento específico dentro de um array de Strings. Se o elemento buscado não for encontrado, a função retorna nil.
 */
 
+func findIndex(ofString valueToFind: String, in array: [String]) -> Int? {
+    for (index, value) in array.enumerated() {
+        if value == valueToFind {
+            return index
+        }
+    }
+    return nil
+}
 
 
 /*:
  Uso:
 */
 
+let strings = ["cat", "dog", "llama", "parakeet", "terrapin"]
+if let index = findIndex(ofString: "llama", in: strings) {
+    print("Index of llama: \(index)")
+} else {
+    print("llama not found")
+}
+// Output: Index of llama: 2
 
 
 /*:
  Esse tipo de função seria útil se implementada para arrays de tipos genéricos. Você pode implementá-la substituindo o tipo do array e do valor a ser encontrado por T. Note que o retorno da função continua sendo Int? porque o index de qualquer array é do tipo Int, independente do tipo dos seus elementos.
 */
 
+func findIndexGeneric<T: Equatable>(of valueToFind: T, in array: [T]) -> Int? {
+    for (index, value) in array.enumerated() {
+        if value == valueToFind {
+            return index
+        }
+    }
+    return nil
+}
 
 
 /*:
@@ -222,12 +383,26 @@ Agora vamos fazer uma versão genérica do mesmo cóigo:
  Qualquer tipo que é Equatable pode ser usado sem problemas na função findIndex, porque é garantido que tais tipos suportam o operador (==). Parar expressar esse fato adicionamos o type constraint Equatable como parte da definição de type parameters da versão genérica da função:
 */
 
-
+func findIndexGenericTwo<T: Equatable>(of valueToFind: T, in array: [T]) -> Int? {
+    for (index, value) in array.enumerated() {
+        if value == valueToFind {
+            return index
+        }
+    }
+    return nil
+}
 
 /*:
  Assim, definimos que T pode ser qualquer tipo que conforme com o protocolo Equatable, e que consequentemente tem implementado o operador ==.
  Exemplos de uso da função findIndex genérica
 */
+
+let array = ["apple", "banana", "orange"]
+if let index = findIndexGeneric(of: "banana", in: array) {
+    print("O index da palavra 'banana' no array é: \(index)")
+} else {
+    print("A palavra 'banana' não foi encontrada no array")
+}
 
 
 
@@ -242,6 +417,12 @@ Agora vamos fazer uma versão genérica do mesmo cóigo:
 Vamos implementar um protocolo Container quer resolve os problemas do nosso armário do exercício de protocols:
 */
 
+protocol Container {
+    associatedtype Item
+    mutating func append(_ item: Item)
+    var count: Int { get }
+    subscript(i: Int) -> Item { get }
+}
 
 
 /*:
@@ -262,11 +443,65 @@ Vamos implementar um protocolo Container quer resolve os problemas do nosso arm�
  Vamos implementar abaixo uma versão não genérica da struct IntStack que assina o protocolo Container:
 */
 
+struct IntStackWithContainer: Container {
+    // Implementação do protocolo Container
+    typealias Item = Int
+    
+    var items = [Int]()
+    mutating func push(_ item: Int) {
+        items.append(item)
+    }
+    mutating func pop() -> Int {
+        return items.removeLast()
+    }
+    
+    // Implementação do protocolo Container
+    mutating func append(_ item: Int) {
+        self.push(item)
+    }
+    var count: Int {
+        return items.count
+    }
+    subscript(i: Int) -> Int {
+        return items[i]
+    }
+}
+
 
 
 /*:
  Versão genérica:
 */
+
+struct StackGenericWithContainer<Element>: Container {
+    // implementação do protocolo Container
+    typealias Item = Element
+    
+    private var items = [Element]()
+    
+    mutating func push(_ item: Element) {
+        items.append(item)
+    }
+    
+    mutating func pop() -> Element? {
+        guard !items.isEmpty else { return nil }
+        return items.removeLast()
+    }
+    
+    // implementação do protocolo Container
+    mutating func append(_ item: Element) {
+        self.push(item)
+    }
+    
+    var count: Int {
+        return items.count
+    }
+    
+    // implementação do protocolo Container
+    subscript(i: Int) -> Element {
+        return items[i]
+    }
+}
 
 
 
@@ -277,6 +512,13 @@ Vamos implementar um protocolo Container quer resolve os problemas do nosso arm�
  Você pode adicionar type constraints a um associated type em um protocolo para requerir que os tipos que assinam esse protocolo satisfaçam essas constraints. Por exemplo, o código abaixo diz que Item deve ser Equatable.
 
 */
+
+protocol ContainerNew {
+    associatedtype Item: Equatable
+    mutating func append(_ item: Item)
+    var count: Int { get }
+    subscript(i: Int) -> Item { get }
+}
 
 
 
